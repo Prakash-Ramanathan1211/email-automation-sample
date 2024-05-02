@@ -92,5 +92,10 @@ def index(email,filena,username):
 
     return "true"
 
+@app.route("/send/mail/<email>/<name>/<phone>/<query>",methods=["GET","POST"])
+def send_contact(email,name,phone,query):
+    return "hello"
+
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0",port=5000)
