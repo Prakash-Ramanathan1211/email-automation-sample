@@ -3,25 +3,18 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
-from flask import Flask, render_template, Response, request, redirect
+from flask import Flask, request
 import os.path
-
+from urllib.parse import quote
 
 app = Flask(__name__)
 
+@app.route('/send/mail/<email>/<filena>/<username>', methods=["GET"])
+def send_mail(email, filena, username):
 
+    body = f'''Hello {username.upper()}
 
-@app.route('/send/mail/<email>/<filena>/<username>',methods=["GET"])
-def index(email,filena,username):
-
-    body = "Hello  "+ username + "\n"
-    body = body +'''This is the body of the email
-    sicerely yours
-    G.G.      
-    '''
-    body =  f'''Hello {username.upper()}
-
-    You have sucessfully registered for KERNEL'23.
+    You have successfully registered for KERNEL'23.
     Please make sure to reach the campus before 9 AM
 
     Note
@@ -38,61 +31,40 @@ def index(email,filena,username):
     Warm Regards
     KERNEL'23
     Registration Team Members
-     '''
-    # put your email here
+    '''
+
     sender = 'kernel23symposium@gmail.com'
-    # get the password in the gmail (manage your google account, click on the avatar on the right)
-    # then go to security (right) and app password (center)
-    # insert the password and then choose mail and this computer and then generate
-    # copy the password generated here
     password = 'rweriuwugqodjdme'
-    # put the email of the receiver here
     receiver = email
 
-    #Setup the MIME
     message = MIMEMultipart()
     message['From'] = sender
     message['To'] = receiver
     message['Subject'] = "Successfully registered"
 
     message.attach(MIMEText(body, 'plain'))
-    filen = filena+".pdf"
+    filen = filena + ".pdf"
     __location__ = os.path.realpath(
-    os.path.join(os.getcwd(), os.path.dirname(__file__)))
-    with open(os.path.join(__location__, filen),'rb') as pdf:
-        print(pdf)
-        # pdfname = '/api/rank-test.pdf'
-
-        # pdfname = open(pdf, 'rb')
-        
+        os.path.join(os.getcwd(), os.path.dirname(__file__)))
+    with open(os.path.join(__location__, filen), 'rb') as pdf:
         payload = MIMEBase('application', 'octate-stream', Name=filen)
-        # payload = MIMEBase('application', 'pdf', Name=pdfname)
-        payload.set_payload((pdf).read())
-
-        # enconding the binary into base64
+        payload.set_payload(pdf.read())
         encoders.encode_base64(payload)
-        
-        # add header with pdf name
-        payload.add_header('Content-Decomposition', 'attachment', filename=filen)
+        payload.add_header('Content-Decomposition', 'attachment', filename=quote(filen))
         message.attach(payload)
 
-        #use gmail with port
         session = smtplib.SMTP('smtp.gmail.com', 587)
-
-        #enable security
         session.starttls()
-
-        #login with mail_id and password
         session.login(sender, password)
-
         text = message.as_string()
         session.sendmail(sender, receiver, text)
         session.quit()
-        print('Mail Sent')
 
     return "true"
 
-@app.route("/send/mail/<email>/<name>/<phone>/<query>",methods=["GET","POST"])
+
+
+@app.route("/send/mail/<email>/<name>/<phone>/<query>",methods=["GET"])
 def send_contact(email,name,phone,query):
     return "hello"
 
